@@ -2,6 +2,10 @@ package com.ubiswal.main;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.S3Object;
@@ -23,7 +27,10 @@ public class Main {
     public static void main(String args []) throws IOException {
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
         Config cfg = getConfig(s3);
-        Handlers handlers = new Handlers(cfg.getStockSymbols());
+        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
+        DynamoDB dynamoDB = new DynamoDB(client);
+        Table table = dynamoDB.getTable("Analytics-testing");
+        Handlers handlers = new Handlers(cfg.getStockSymbols(), table);
         HttpServer httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
         HttpContext homeContext = httpServer.createContext("/");
         homeContext.setHandler(handlers::homeHandler);
