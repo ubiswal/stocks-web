@@ -15,16 +15,20 @@ import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import com.ubiswal.config.Config;
 import com.ubiswal.handlers.Handlers;
+import j2html.tags.ContainerTag;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import static j2html.TagCreator.*;
+
 
 public class Main {
     private static final String BUCKETNAME = "stocks-testing";
 
     public static void main(String args []) throws IOException {
+
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
         Config cfg = getConfig(s3);
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();

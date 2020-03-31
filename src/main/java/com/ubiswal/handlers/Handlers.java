@@ -7,12 +7,16 @@ import com.amazonaws.services.dynamodbv2.document.KeyAttribute;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.sun.net.httpserver.HttpExchange;
+import j2html.tags.ContainerTag;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static j2html.TagCreator.*;
 
 public class Handlers {
     private List<String> symbols;
@@ -24,12 +28,14 @@ public class Handlers {
     }
 
     public void homeHandler(HttpExchange exchange) throws IOException {
-        String response = "<HTML>\n";
-        response += "<header>\n";
-        response += "</header>\n";
-        response += "<body>\n";
-        response += "<h1>Watch list</h1>\n";
-        response += "<p>\n";
+        ContainerTag h = head(
+                title("Stock Info"),
+                link().withRel("stylesheet").withHref("/css/main.css")
+        );
+
+        List<ContainerTag> bodyElements = new ArrayList<>();
+        bodyElements.add(h1("Max Stock Price"));
+
         for (String symbol : symbols) {
             System.out.println("Fetching max price for " + symbol);
             GetItemSpec spec = new GetItemSpec().withPrimaryKey(new KeyAttribute("symb", symbol), new KeyAttribute("type", "1_maxprice"));
@@ -38,11 +44,14 @@ public class Handlers {
                 System.out.println("Could not fetch data for " + symbol);
                 continue;
             }
-            response += "</p>\n";
-            response += "</body>\n";
-            response = response + symbol + " : " + item.asMap().get("value") + "\n";
+            bodyElements.add(
+                    p(String.format("%s : %s", symbol,  item.asMap().get("value").toString()))
+            );
         }
-        response = response + "</HTML>";
+        ContainerTag b = body(
+                bodyElements.toArray(new ContainerTag[0])
+        );
+        String response = html(h, b).render();
         exchange.sendResponseHeaders(200, response.getBytes().length);
         OutputStream os = exchange.getResponseBody();
         os.write(response.getBytes());
