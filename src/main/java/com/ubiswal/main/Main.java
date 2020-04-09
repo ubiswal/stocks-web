@@ -14,14 +14,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import com.ubiswal.config.Config;
-import com.ubiswal.handlers.Handlers;
-import j2html.tags.ContainerTag;
+import com.ubiswal.handlers.HomeHandler;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import static j2html.TagCreator.*;
 
 
 public class Main {
@@ -34,7 +32,7 @@ public class Main {
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
         DynamoDB dynamoDB = new DynamoDB(client);
         Table table = dynamoDB.getTable("Analytics-testing");
-        Handlers handlers = new Handlers(cfg.getStockSymbols(), table);
+        HomeHandler handlers = new HomeHandler(cfg.getStockSymbols(), table);
         HttpServer httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
         HttpContext homeContext = httpServer.createContext("/");
         homeContext.setHandler(handlers::homeHandler);
