@@ -47,7 +47,7 @@ public class HomeHandler {
                 meta().withCharset("utf-8"),
                 link().withHref("https://fonts.googleapis.com/css2?family=Noto+Serif&family=Roboto+Condensed&display=swap").withRel("stylesheet")
         );
-        heading = h1().withText("Mamun's stock digest")
+        heading = h1().withText("$tock Digest")
                 .withStyle("width: 100%; height: 100px; padding-left: 10px; padding-top: 10px; margin: 0; font-family:Roboto Condensed, sans-serif; font-size:40px; color: #2DC925; background-color: black;");
     }
 
@@ -93,139 +93,111 @@ public class HomeHandler {
         }
     }
 
+    private ContainerTag getSymbolInfo(final String symbol, float diff, int heightInPx) {
+        String textStyle = String.format("font-family:Roboto Condensed, sans-serif; color:%s; font-size: %spx;", diff > 0?"#009036": "#99220E", heightInPx);
+        EmptyTag arrowIcon = img().withSrc(String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s.png", diff > 0? "up": "down"))
+                .withStyle(String.format("height: %spx; width: %spx;", heightInPx, heightInPx)); // This is a square
+        ContainerTag diffText = p().withText(String.format("$%s", diff))
+                .withStyle(textStyle);
+        ContainerTag nameText = p().withText(symbol)
+                .withStyle(textStyle);
+        return tr(td(
+                button(nameText).withStyle("background-color: Transparent;background-repeat:no-repeat;border: none;cursor:pointer;overflow: hidden;"),
+                button(arrowIcon).withStyle("background-color: Transparent;background-repeat:no-repeat;border: none;cursor:pointer;overflow: hidden;"),
+                button(diffText).withStyle("background-color: Transparent;background-repeat:no-repeat;border: none;cursor:pointer;overflow: hidden;")
+        )).withStyle("background-color: black;");
+    }
+
+    private List<ContainerTag> getNewsArticlesForSymbol(String sym, int max, int heightInPx, int fontSizeInPx, int maxChars, boolean dark) {
+        List<News> allStories = getNewsArticlesForSymbol(sym);
+        List<News> someStories = allStories.subList(0, Math.min(max, allStories.size()));
+        List<ContainerTag> storyTable = new ArrayList<>();
+        for (News story : someStories) {
+            storyTable.add(
+                    tr(
+                            td(img().withSrc(story.getUrlToImage()).withStyle(String.format("height: %spx; width: %spx; object-fit: cover;", heightInPx, heightInPx))),
+                            td(button().withText(story.getTitle().substring(0, Math.min(maxChars, story.getTitle().length())) +(story.getTitle().length() > maxChars? "...": ""))
+                                    .attr("onclick", String.format(" window.open('%s', '_blank'); return false;", story.getUrl()))
+                                    .attr("target", "_blank")
+                                    .withStyle(String.format("font-family:Roboto Condensed, sans-serif; color:black; font-size: %spx; background-color: Transparent;background-repeat:no-repeat;cursor:pointer;overflow: hidden; border: none; height: %spx; text-align: left; color: %s", fontSizeInPx, heightInPx, dark? "white": "black"))
+                            )).withStyle(String.format("height: %spx; outline: thin solid; margin-bottom: 10px;", heightInPx))
+            );
+        }
+        return storyTable;
+    }
+
+    /**
+     * This section will contain the Dow jones chart and some related news articles.
+     * @return
+     */
     private ContainerTag getDjiBanner() {
         final float diff = Math.round(Float.valueOf(getPropertyForSymbol("DJI", "3_diff", "value")));
-        //EmptyTag stockIcon = img().withSrc("https://ubiswal-website-contents.s3.amazonaws.com/stock-icon.png").withStyle("width: 100px; height: 100px; object-fit: contain");
-        EmptyTag chart = img().withSrc("https://ubiswal-website-contents.s3.amazonaws.com/DJI_light.jpg").withStyle("width: 800px; height: 300px;padding: 10px 10px 10px 10px;");
-        EmptyTag arrowIcon = img().withSrc(String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s.png", diff > 0? "up": "down"))
-                .withStyle("height: 20px; width: 20px;");
-        ContainerTag diffText = p().withText(String.format("%s$%s",diff > 0? "+":"-", Float.toString(diff)))
-                .withStyle(String.format("font-family:Roboto Condensed, sans-serif; color:%s; font-size: 20px;", diff > 0?"#009036": "#99220E"));
-        ContainerTag nameText = p().withText("DJI")
-                .withStyle(String.format("font-family:Roboto Condensed, sans-serif; color:%s; font-size: 20px;", diff > 0?"#009036": "#99220E"));
-
+        EmptyTag chart = img().withSrc("https://ubiswal-website-contents.s3.amazonaws.com/DJI_dark.jpg").withStyle("width: 800px; height: 300px;padding: 10px 10px 10px 10px;");
         ContainerTag info = td(
                 table(
-                        tr(
-                                td(
-                                        button(nameText).withStyle("background-color: Transparent;background-repeat:no-repeat;border: none;cursor:pointer;overflow: hidden;"),
-                                        button(arrowIcon).withStyle("background-color: Transparent;background-repeat:no-repeat;border: none;cursor:pointer;overflow: hidden;"),
-                                        button(diffText).withStyle("background-color: Transparent;background-repeat:no-repeat;border: none;cursor:pointer;overflow: hidden;")
-                                )
-                        ),
+                        getSymbolInfo("DJI", diff, 20),
                         tr(td(chart)).withStyle("height: 360px; width: 850px; outline: thin solid; padding-left: 10px;")
                 ).withStyle("height: 400px; width: 850px;")
-        ).withStyle("height: 550px; width: 40%;");
+        ).withStyle("height: 550px; padding-left: 100px;");
 
         EmptyTag newsIcon = img().withSrc("https://ubiswal-website-contents.s3.amazonaws.com/news-icon.png").withStyle("width: 100px; height: 100px; object-fit: cover;");
-        List<News> stories = getNewsArticlesForSymbol("DJI").subList(0, 3);
+        List<ContainerTag> newsTable = new ArrayList<>();
+        newsTable.add(tr(
+                td(newsIcon).withStyle("width: 100px"),
+                td(h2().withText("News for DJI").withStyle("font-family:Roboto Condensed, sans-serif; color:black; font-size: 30px; color: white"))
+        ));
+        newsTable.addAll(getNewsArticlesForSymbol("DJI", 3, 100, 18, 150, true));
+
         ContainerTag news = td(
                 table(
-                        tr(
-                                td(newsIcon).withStyle("width: 100px"),
-                                td(h2().withText("Related news").withStyle("font-family:Roboto Condensed, sans-serif; color:black; font-size: 30px;"))
-                        ),
-                        tr(
-                                td(img().withSrc(stories.size() > 0? stories.get(0).getUrlToImage() : "").withStyle("height: 100px; width: 100px; object-fit: cover;")),
-                                td(button().withText(stories.size() > 0? stories.get(0).getTitle()/*.substring(0, Math.min(stories.get(0).getTitle().length(), 50)) + "..."*/: "")
-                                .withStyle("font-family:Roboto Condensed, sans-serif; color:black; font-size: 18px; background-color: Transparent;background-repeat:no-repeat;cursor:pointer;overflow: hidden; border: none; height: 70px; margin-bottom: 10px; text-align: left")
-                                .attr("onclick", String.format("window.location.href = '%s';", stories.size() > 0 ? stories.get(0).getUrl(): ""))
-                        )).withStyle("height: 80px; outline: thin solid"),
-
-                        tr(
-                                td(img().withSrc(stories.size() > 1? stories.get(1).getUrlToImage() : "").withStyle("height: 100px; width: 100px; object-fit: cover;")),
-                                td(button().withText(stories.size() > 1? stories.get(1).getTitle()/*.substring(0, Math.min(stories.get(0).getTitle().length(), 50)) + "..."*/: "")
-                                .withStyle("font-family:Roboto Condensed, sans-serif; color:black; font-size: 18px; background-color: Transparent;background-repeat:no-repeat;border: none;cursor:pointer;overflow: hidden; height: 70px; margin-bottom: 10px; text-align: left")
-                                .attr("onclick", String.format("window.location.href = '%s';", stories.size() > 1 ? stories.get(1).getUrl(): ""))
-                        )).withStyle("height: 80px; outline: thin solid"),
-                        tr(
-                                td(img().withSrc(stories.size() > 2? stories.get(2).getUrlToImage() : "").withStyle("height: 100px; width: 100px; object-fit: cover;")),
-                                td(button().withText(stories.size() > 2? stories.get(2).getTitle()/*.substring(0, Math.min(stories.get(0).getTitle().length(), 50)) + "..."*/: "")
-                                .withStyle("font-family:Roboto Condensed, sans-serif; color:black; font-size: 18px; background-color: Transparent;background-repeat:no-repeat;border: none;cursor:pointer;overflow: hidden; height: 70px; margin-bottom: 10px; text-align: left")
-                                .attr("onclick", String.format("window.location.href = '%s';", stories.size() > 2 ? stories.get(2).getUrl(): ""))
-                        )).withStyle("height: 80px; outline: thin solid")
+                        newsTable.toArray(new ContainerTag[0])
                 )
-        ).withStyle("height: 550px; width: 40%; padding-left: 20px; padding-top: 10px;");
-        return tr(info, news).withStyle("width: 100%");
+        ).withStyle("height: 550px; padding-right: 50px; padding-top: 10px;");
+        return tr(info, news).withStyle("width: 100%; background-color: #2B2D32");
     }
 
-    /*private ContainerTag getContainerForSymbol(String symbol, String maxProfit, String diff, String highest) {
-        String[] parts = maxProfit.split(";");
-        String maxPft = parts[0];
-        //String maxBuyIdx = parts[1];
-        //String maxSellIdx = parts[2];
-        ContainerTag imageDiv = div(
-                (img().withSrc(String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s_light.jpg", symbol)).withStyle("height: 200px; width: 200px;"))
-        ).withStyle("padding-left: 10px;");
-
-        return imageDiv;
-    }
-
-    private List<News> getNewsForSymbol(String symbol) {
-        QuerySpec spec = new QuerySpec().withKeyConditionExpression("type <= 100");
-        ItemCollection<QueryOutcome> items = table.query(spec);
-        for (Item item : items) {
-            Map<String, Object> newsProperties = item.asMap();
-        }
-        table().wi
-    }
-
-    private ContainerTag djiBanner() {
-        float diff = Math.round(Float.valueOf(getPropertyForSymbol("DJI", "3_diff", "value")));
-        String chartUrl = "https://ubiswal-website-contents.s3.amazonaws.com/DJI_light.jpg";
-        ContainerTag info = div(
-                p().withText(String.format("%s$%s",diff > 0? "+":"-", Float.toString(diff)))
-                    .withStyle(String.format("font-family:Roboto Condensed, sans-serif; color:%s; font-size: 20px;", diff > 0?"#009036": "#99220E")),
-                br(),
-                img().withSrc(String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s.png", diff > 0? "up": "down"))
-                        .withStyle("height: 70px; width: 70px;")
-        ).withStyle("padding-left: 20px; height: 300px; width: 200px; float: right; padding-right: 20px;");
-        ContainerTag container = div(
-                br(),
-                img().withSrc(chartUrl).withSrc(chartUrl)
-                        .withStyle("height: 300px; width: 800px;padding-left: 30px; box-shadow: 5px 5px 5px 5px gray; border-radius: 3px; float: left"),
-                info
-        ).withStyle("height: 360px; width: 1300px; margin-top: 20px; padding-left: 30px; padding-top: 30px; box-shadow: 5px 5px 5px 5px gray; border-radius: 3px; margin-bottom: 5vh; float: left");
-        return container;
-    }
-
-    private ContainerTag djiNews() {
-        ContainerTag container = div()
-                .withStyle("float: right; height: 360px; width: 500px; box-shadow: 5px 5px 5px 5px gray; border-radius: 3px; margin-right: 20px; margin-top: 20px;");
-        return container;
-    }
-
-    private ContainerTag remStocksFloater() {
-
-        List<ContainerTag> bodyElements = new ArrayList<>();
+    private ContainerTag getTicker() {
+        List<ContainerTag> charts = new ArrayList<>();
         for (String symbol : symbols) {
             if (symbol.equals("DJI")) {
                 continue;
             }
-            System.out.println("Fetching max price for " + symbol);
-
-            String  maxPrice = getPropertyForSymbol(symbol, "1_maxprice", "value");
-            String maxProfit = getPropertyForSymbol(symbol, "2_bestProfit", "value");
-            String diff =  getPropertyForSymbol(symbol, "3_diff", "value");
-
-            if (maxPrice == null || maxProfit == null || diff == null) {
-                continue;
-            } else {
-                bodyElements.add(
-                        div(
-                                p(symbol).withStyle("font-family:Noto Serif, serif; font-size: 3vh; color: #E12931; display:inline-block; vertical-align:top;"),
-                                img().withSrc(String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s.png", Float.valueOf(diff) > 0? "up": "down"))
-                                        .withStyle("height: 20px; width: 20px; padding-left: 2vw;  display:inline-block; vertical-align:top; padding-top: 3vh;"),
-                                getContainerForSymbol(symbol, maxProfit, diff, maxPrice),
-                                br(),
-                                hr()
-                        ).withStyle("padding-top: 10px; padding-right: 10px; margin-top: 700px;")
-                );
-            }
+            final float diff = Math.round(Float.valueOf(getPropertyForSymbol(symbol, "3_diff", "value")));
+            charts.add(getSymbolInfo(symbol, diff, 20));
+            charts.add(tr(td(
+                    img()
+                            .withSrc(String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s_light.jpg", symbol))
+                            .withStyle("width: 300px; height: 300px;")
+            )));
         }
-        return div(bodyElements.toArray(new ContainerTag[0]))
-                .withStyle("width: 400px; float: right; box-shadow: 5px 5px 5px 5px gray; border-radius: 3px; padding-left: 50px; margin-top: 3vh; margin-right: 3vw;");
-    }*/
+        return td(
+                table(
+                        charts.toArray(new ContainerTag[0])
+                )
+        ).withStyle("padding-top: 50px;");
+    }
+
+    private ContainerTag getNewsLists() {
+        List<ContainerTag> stories = new ArrayList<>();
+        EmptyTag newsIcon = img().withSrc("https://ubiswal-website-contents.s3.amazonaws.com/news-icon.png").withStyle("width: 100px; height: 100px; object-fit: cover;");
+        stories.add(
+                tr(
+                        td(newsIcon).withStyle("width: 100px"),
+                        td(h2().withText("News digest").withStyle("font-family:Roboto Condensed, sans-serif; color:black; font-size: 30px;"))
+                )
+        );
+        for (String symbol : symbols) {
+            if (symbol.equals("DJI")) {
+                continue;
+            }
+            stories.addAll(getNewsArticlesForSymbol(symbol, 3, 100, 18, 800, false));
+        }
+        return td(
+                table(
+                        stories.toArray(new ContainerTag[0])
+                )
+        );
+    }
 
     public void homeHandler(HttpExchange exchange) throws IOException {
         //ContainerTag banner = djiBanner();
@@ -241,8 +213,12 @@ public class HomeHandler {
         ContainerTag b = body(
                 heading,
                 table(
-                        getDjiBanner()
-                ).withStyle("width: 95%;")
+                        getDjiBanner(),
+                        tr(
+                                getNewsLists().withStyle("width: 70%; padding-left: 50px;"),
+                                getTicker().withStyle("width: 29%;padding-left: 100px; margin-top: 50px;")
+                        )
+                ).withStyle("position:relative; width: 100%; border-spacing: 0;").attr("border", "0")
         ).withStyle("background-image: url('https://ubiswal-website-contents.s3.amazonaws.com/stock-header.svg'); object-fit: fill;  padding: 0; margin: 0;");
         String response = html(pageHead, b).render();
         exchange.sendResponseHeaders(200, response.getBytes().length);
@@ -260,4 +236,3 @@ public class HomeHandler {
     }
 
 }
-
