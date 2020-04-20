@@ -15,6 +15,7 @@ import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
 import com.ubiswal.config.Config;
 import com.ubiswal.handlers.HomeHandler;
+import com.ubiswal.handlers.SymbolHandler;
 import j2html.tags.ContainerTag;
 import org.apache.commons.io.FileUtils;
 
@@ -27,18 +28,34 @@ public class Main {
     private static final String BUCKETNAME = "stocks-testing";
 
     public static void main(String args []) throws IOException {
+        int port = 80;
+        if (args.length > 0) {
+            try {
+                port = Integer.valueOf(args[0]);
+            } catch (Exception e) {
+                System.out.println("Could not read port from cmd line.");
+            }
+        }
+        System.out.println(String.format("Port set to %d", port));
 
         final AmazonS3 s3 = AmazonS3ClientBuilder.standard().withRegion(Regions.US_EAST_1).build();
         Config cfg = getConfig(s3);
         AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard().build();
         DynamoDB dynamoDB = new DynamoDB(client);
         Table table = dynamoDB.getTable("Analytics-testing");
-        HomeHandler handlers = new HomeHandler(cfg.getStockSymbols(), table);
-        HttpServer httpServer = HttpServer.create(new InetSocketAddress(8080), 0);
+
+        HomeHandler homeHandler = new HomeHandler(cfg.getStockSymbols(), table);
+        SymbolHandler symbolHandler = new SymbolHandler(cfg.getStockSymbols(), table);
+
+        HttpServer httpServer = HttpServer.create(new InetSocketAddress(port), 0);
         HttpContext homeContext = httpServer.createContext("/");
-        homeContext.setHandler(handlers::homeHandler);
+        homeContext.setHandler(homeHandler::homeHandler);
+
         HttpContext testContext = httpServer.createContext("/test");
-        testContext.setHandler(handlers::testHandler);
+        testContext.setHandler(homeHandler::testHandler);
+
+        HttpContext symbolContext = httpServer.createContext("/sym");
+        symbolContext.setHandler(symbolHandler::symbolHanler);
         httpServer.start();
     }
 
