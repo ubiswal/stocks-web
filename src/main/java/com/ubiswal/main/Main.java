@@ -28,7 +28,7 @@ public class Main {
     private static final String BUCKETNAME = "stocks-testing";
 
     public static void main(String args []) throws IOException {
-        int port = 80;
+        int port = 8080;
         if (args.length > 0) {
             try {
                 port = Integer.valueOf(args[0]);
