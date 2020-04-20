@@ -41,7 +41,7 @@ public final class HomeHandler {
      */
     private ContainerTag getDjiBanner() {
         final float diff = Math.round(Float.valueOf(DynamoUtils.getPropertyForSymbol("DJI", "3_diff", "value", table)));
-        EmptyTag chart = img().withSrc("https://ubiswal-website-contents.s3.amazonaws.com/DJI_dark.jpg").withStyle("width: 800px; height: 300px;padding: 10px 10px 10px 10px;");
+        EmptyTag chart = img().withSrc("https://ubiswal-website-contents.s3.amazonaws.com/DJI_dark_large.jpg").withStyle("width: 800px; height: 300px;padding: 10px 10px 10px 10px;");
         ContainerTag info = td(
                 table(
                         PageUtils.getSymbolInfo("DJI", diff, 20),
