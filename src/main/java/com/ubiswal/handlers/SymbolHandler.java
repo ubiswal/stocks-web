@@ -42,23 +42,41 @@ public class SymbolHandler {
 
     private ContainerTag getBanner(String symbol) {
         final float diff = Math.round(Float.valueOf(DynamoUtils.getPropertyForSymbol(symbol, "3_diff", "value", table)));
-        final boolean status = DynamoUtils.getPropertyForSymbol("DJI", "3_diff", "status", table).equals("fresh");
+        String freshness = DynamoUtils.getPropertyForSymbol(symbol, "3_diff", "status", table);
+        final boolean status = (freshness == null) || freshness.equals("fresh");
         String chartUrl = String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s_dark_large.jpg", symbol);
         EmptyTag chart = img().withSrc(chartUrl).withStyle("width: 800px; height: 300px;padding: 10px 10px 10px 10px;");
-        ContainerTag info = td(
+        ContainerTag chartInfo = td(
                 table(
                         PageUtils.getSymbolInfo(symbol, diff, 20, status),
                         tr(td(chart)).withStyle("height: 360px; width: 850px; outline: thin solid; padding-left: 10px;")
                 ).withStyle("height: 400px; width: 850px;")
         ).withStyle("height: 550px; padding-left: 100px;");
-        return tr(info).withStyle("width: 100%; background-color: #2B2D32");
+        ContainerTag analyticsInfo = getAnalyticsSummary(symbol);
+        return tr(chartInfo, analyticsInfo).withStyle("width: 100%; background-color: #2B2D32");
+    }
+
+    private ContainerTag getAnalyticsSummary(String symbol) {
+        final float maxPrice = Math.round(Float.valueOf(DynamoUtils.getPropertyForSymbol(symbol, "1_maxprice", "value", table)));
+        final float maxPft = Math.round(Float.valueOf(DynamoUtils.getPropertyForSymbol(symbol, "2_bestProfit", "value", table).split(";")[0]));
+
+        ContainerTag maxPriceText = p().withText(String.format("Last seen best stock price was %.2f", maxPrice))
+                .withStyle("font-family:Roboto Condensed, sans-serif; color: #009036; font-size: 30px;");
+        ContainerTag maxPftText = p().withText(String.format("Maximum profit possible in last 24 hours was %.2f", maxPft))
+                .withStyle("font-family:Roboto Condensed, sans-serif; color: #009036; font-size: 30px;");
+        ContainerTag info = td(
+                maxPriceText,
+                br(),
+                maxPftText
+        ).withStyle("height: 550px; padding-left: 100px;");
+        return info;
     }
 
     private void refreshHtml(String symbol) {
         System.out.println("Refreshing home page");
         try {
             ContainerTag pageHead = head(
-                    title("Stock Info"),
+                    title(String.format("%s stock Info", symbol)),
                     meta().withCharset("utf-8"),
                     link().withHref("https://fonts.googleapis.com/css2?family=Noto+Serif&family=Roboto+Condensed&display=swap").withRel("stylesheet")
             );

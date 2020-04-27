@@ -47,10 +47,11 @@ public class DynamoUtils {
     public static String getPropertyForSymbol(String symbol, String type, String column, Table table) {
         GetItemSpec spec = new GetItemSpec().withPrimaryKey(new KeyAttribute("symb", symbol), new KeyAttribute("type", type));
         Item item = table.getItem(spec);
-        if (item == null) {
-            System.out.println(String.format("Could not fetch %s for %s", type, symbol));
+        if (item == null || item.asMap().get(column) == null) {
+            System.out.println(String.format("Could not fetch %s,%s for %s", type, column, symbol));
             return null;
         } else {
+            System.out.println(String.format("Property pkey=%s,skey=%s,col=%s is %s", symbol, type, column, item.asMap().get(column).toString()));
             return item.asMap().get(column).toString();
         }
     }
