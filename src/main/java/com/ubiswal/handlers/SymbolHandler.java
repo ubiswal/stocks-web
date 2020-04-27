@@ -42,11 +42,12 @@ public class SymbolHandler {
 
     private ContainerTag getBanner(String symbol) {
         final float diff = Math.round(Float.valueOf(DynamoUtils.getPropertyForSymbol(symbol, "3_diff", "value", table)));
+        final boolean status = DynamoUtils.getPropertyForSymbol("DJI", "3_diff", "status", table).equals("fresh");
         String chartUrl = String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s_dark_large.jpg", symbol);
         EmptyTag chart = img().withSrc(chartUrl).withStyle("width: 800px; height: 300px;padding: 10px 10px 10px 10px;");
         ContainerTag info = td(
                 table(
-                        PageUtils.getSymbolInfo(symbol, diff, 20),
+                        PageUtils.getSymbolInfo(symbol, diff, 20, status),
                         tr(td(chart)).withStyle("height: 360px; width: 850px; outline: thin solid; padding-left: 10px;")
                 ).withStyle("height: 400px; width: 850px;")
         ).withStyle("height: 550px; padding-left: 100px;");

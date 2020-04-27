@@ -41,10 +41,11 @@ public final class HomeHandler {
      */
     private ContainerTag getDjiBanner() {
         final float diff = Math.round(Float.valueOf(DynamoUtils.getPropertyForSymbol("DJI", "3_diff", "value", table)));
+        final boolean status = DynamoUtils.getPropertyForSymbol("DJI", "3_diff", "status", table).equals("true");
         EmptyTag chart = img().withSrc("https://ubiswal-website-contents.s3.amazonaws.com/DJI_dark_large.jpg").withStyle("width: 800px; height: 300px;padding: 10px 10px 10px 10px;");
         ContainerTag info = td(
                 table(
-                        PageUtils.getSymbolInfo("DJI", diff, 20),
+                        PageUtils.getSymbolInfo("DJI", diff, 20, status),
                         tr(td(chart)).withStyle("height: 360px; width: 850px; outline: thin solid; padding-left: 10px;")
                 ).withStyle("height: 400px; width: 850px;")
         ).withStyle("height: 550px; padding-left: 100px;");
@@ -73,7 +74,8 @@ public final class HomeHandler {
                     continue;
                 }
                 final float diff = Math.round(Float.valueOf(DynamoUtils.getPropertyForSymbol(symbol, "3_diff", "value", table)));
-                charts.add(PageUtils.getSymbolInfo(symbol, diff, 20, String.format("/sym/%s", symbol)));
+                final boolean status = DynamoUtils.getPropertyForSymbol("DJI", "3_diff", "status", table).equals("fresh");
+                charts.add(PageUtils.getSymbolInfo(symbol, diff, 20, String.format("/sym/%s", symbol), status));
                 charts.add(tr(td(
                         img()
                                 .withSrc(String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s_light.jpg", symbol))
