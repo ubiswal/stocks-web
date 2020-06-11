@@ -13,7 +13,7 @@ import static j2html.TagCreator.button;
 
 public class PageUtils {
     public static ContainerTag getSymbolInfo(final String symbol, float diff, int heightInPx, boolean fresh) {
-        System.out.println(String.format("Data for symbo %s is %s", symbol, fresh? "fresh":"stale"));
+        System.out.println(String.format("Data for symbol %s is %s", symbol, fresh? "fresh":"stale"));
         String textStyle = String.format("font-family:Roboto Condensed, sans-serif; color:%s; font-size: %spx;", diff > 0?"#009036": "#99220E", heightInPx);
         EmptyTag arrowIcon = img().withSrc(String.format("https://ubiswal-website-contents.s3.amazonaws.com/%s.png", diff > 0? "up": "down"))
                 .withStyle(String.format("height: %spx; width: %spx;", heightInPx, heightInPx)); // This is a square

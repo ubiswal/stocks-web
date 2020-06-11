@@ -75,7 +75,7 @@ public final class HomeHandler {
                     continue;
                 }
                 final float diff = Math.round(Float.valueOf(DynamoUtils.getPropertyForSymbol(symbol, "3_diff", "value", table)));
-                String freshness = DynamoUtils.getPropertyForSymbol("DJI", "3_diff", "status", table);
+                String freshness = DynamoUtils.getPropertyForSymbol(symbol, "3_diff", "status", table);
                 final boolean status = (freshness == null) || freshness.equals("fresh");
                 charts.add(PageUtils.getSymbolInfo(symbol, diff, 20, String.format("/sym/%s", symbol), status));
                 charts.add(tr(td(
